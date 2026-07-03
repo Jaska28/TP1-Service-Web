@@ -38,6 +38,9 @@ export type Media = {
         native: string | null;
     };
     format: MediaFormat | null;
+    description: string;
+    coverImage: string;
+    genres: string;
 };
 
 /**
@@ -61,7 +64,13 @@ function getMediaQuery(
             native
         }
         format
+        description
+        coverImage{
+            large
         }
+        status
+        genres
+       }
     }`;
 }
 
