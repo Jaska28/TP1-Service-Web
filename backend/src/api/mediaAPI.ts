@@ -70,6 +70,7 @@ function getMediaQuery(
         }
         status
         genres
+        averageScore
        }
     }`;
 }
@@ -83,17 +84,27 @@ function getMediaQuery(
  */
 // GraphQL requests use POST with { query, variables }.
 export async function getDataAnilist(
+    /// TODO - add a way to have a list of searched name. Exemple, there is multiple Dragon Ball series. Will be used so user select witch one with front end.
     value: number | string,
     searchField: 'id' | 'search' = 'id',
     type: MediaType,
-): Promise<Media> {
-    const {data} = await anilist.post('', {
-        query: getMediaQuery(
-            searchField,
-            searchField === 'id' ? 'Int' : 'String',
-            type
-        ),
-        variables: {[searchField]: value},
-    });
-    return data.data.Media as Media;
+) {
+    try {
+        const {data} = await anilist.post('', {
+            query: getMediaQuery(
+                searchField,
+                searchField === 'id' ? 'Int' : 'String',
+                type
+            ),
+            variables: {[searchField]: value},
+        });
+        return data.data.Media as Media;
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            console.log("Status HTTP: ", error.response.status);
+        } else {
+            console.log("Network Error or timeout");
+        }
+        return null;
+    }
 }
