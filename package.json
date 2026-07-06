@@ -8,7 +8,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Jaska28/TP1-Service-Web.git"
+    "url": "git+https://github.com/Jaska28/TP1-Service-Web.git",
+    "dev": "tsx watch src/server.ts"
   },
   "keywords": [],
   "author": "",
