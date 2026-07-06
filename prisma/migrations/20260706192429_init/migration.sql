@@ -27,7 +27,7 @@ CREATE TABLE "User" (
 -- CreateTable
 CREATE TABLE "MediaList" (
     "id" UUID NOT NULL,
-    "userId" TEXT NOT NULL,
+    "userId" UUID NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
     "isPublic" BOOLEAN NOT NULL DEFAULT true,
@@ -39,8 +39,8 @@ CREATE TABLE "MediaList" (
 -- CreateTable
 CREATE TABLE "MediaListItem" (
     "id" UUID NOT NULL,
-    "mediaListId" TEXT NOT NULL,
-    "mediaId" TEXT NOT NULL,
+    "mediaListId" UUID NOT NULL,
+    "mediaId" UUID NOT NULL,
     "addedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "MediaListItem_pkey" PRIMARY KEY ("id")
@@ -68,7 +68,7 @@ CREATE TABLE "Media" (
 -- CreateTable
 CREATE TABLE "Review" (
     "id" UUID NOT NULL,
-    "userId" TEXT NOT NULL,
+    "userId" UUID NOT NULL,
     "rating" DOUBLE PRECISION NOT NULL,
     "comments" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
