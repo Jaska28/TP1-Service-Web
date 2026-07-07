@@ -14,24 +14,6 @@ export const HTTP_STATUS_CODES = {
 
 const routerMedia = Router();
 
-async function runDemo() {
-    try {
-        const anime = await getDataAnilist("dragon ball", "search", MediaType.MANGA);
-        console.log(anime);
-    } catch (error) {
-        if (error instanceof AxiosError) {
-            console.error('AniList request failed:', {
-                status: error.response?.status,
-                data: error.response?.data,
-            });
-        } else {
-            console.error('Unexpected error:', error);
-        }
-    }
-}
-
-void runDemo();
-
 // Register a media to the database.
 /// TODO - Add user authentication and authorization to restrict access.
 routerMedia.post("", async (req: Request, res: Response) => {
