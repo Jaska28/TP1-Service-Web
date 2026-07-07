@@ -32,15 +32,12 @@ export enum MediaFormat {
 
 export type Media = {
     id: number;
-    title: {
-        romaji: string | null;
-        english: string | null;
-        native: string | null;
-    };
+    title: { english: string | null; };
     format: MediaFormat | null;
     description: string;
     coverImage: string;
-    genres: string;
+    genres: string[];
+    averageScore: number;
 };
 
 /**
@@ -58,18 +55,13 @@ function getMediaQuery(
     return `query ($${searchField}: ${searchFieldType}) {
         Media(${searchField}: $${searchField}, type: ${mediaType}) {
         id
-        title {
-            romaji
-            english
-            native
-        }
+        title {english}
         format
         description
-        coverImage{
-            large
-        }
+        coverImage{large}
         status
         genres
+        averageScore
        }
     }`;
 }
@@ -83,17 +75,39 @@ function getMediaQuery(
  */
 // GraphQL requests use POST with { query, variables }.
 export async function getDataAnilist(
+    /// TODO - add a way to have a list of searched name. Exemple, there is multiple Dragon Ball series. Will be used so user select witch one with front end.
     value: number | string,
     searchField: 'id' | 'search' = 'id',
     type: MediaType,
-): Promise<Media> {
-    const {data} = await anilist.post('', {
-        query: getMediaQuery(
-            searchField,
-            searchField === 'id' ? 'Int' : 'String',
-            type
-        ),
-        variables: {[searchField]: value},
-    });
-    return data.data.Media as Media;
+) : Promise<Media | null> {
+    try {
+        const {data} = await anilist.post('', {
+            query: getMediaQuery(
+                searchField,
+                searchField === 'id' ? 'Int' : 'String',
+                type
+            ),
+            variables: {[searchField]: value},
+        });
+
+        const media = data.data.Media;
+        return {
+            id: media.id,
+            title: {english: media.title.english},
+            format: media.format ?? null,
+            description: media.description ?? "",
+            coverImage: media.coverImage?.large ?? "",
+            // If is an array, assign the genre from API, else empty array
+            genres: Array.isArray(media.genres) ? media.genres : [],
+            averageScore: media.averageScore,
+        }
+
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            console.log("Status HTTP: ", error.response.status);
+        } else {
+            console.log("Network Error or timeout");
+        }
+        return null;
+    }
 }
