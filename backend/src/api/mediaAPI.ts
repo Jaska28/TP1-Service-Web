@@ -1,5 +1,7 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
+import type {MediaFormat, Prisma} from "../../generated/prisma/client.js";
+
 
 dotenv.config();
 
@@ -17,34 +19,22 @@ export enum MediaType {
     MANGA = 'MANGA',
 }
 
-export enum MediaFormat {
-    TV = 'TV',
-    TV_SHORT = 'TV_SHORT',
-    MOVIE = 'MOVIE',
-    SPECIAL = 'SPECIAL',
-    OVA = 'OVA',
-    ONA = 'ONA',
-    MUSIC = 'MUSIC',
-    MANGA = 'MANGA',
-    NOVEL = 'NOVEL',
-    ONE_SHOT = 'ONE_SHOT',
-}
-
-export type Media = {
+export type MediaAPI = {
     id: number;
-    title: { english: string | null; };
-    format: MediaFormat | null;
+    title: string;
+    format: MediaFormat;
     description: string;
     coverImage: string;
     genres: string[];
     averageScore: number;
+    releaseYear: number;
 };
 
 /**
  * Generates a GraphQL query string for fetching media data from AniList.
  * @param searchField - The field to search by ('id' or 'search').
  * @param searchFieldType - The GraphQL type of the search field ('Int' or 'String').
- * @param mediaType - The media type, either MediaType.ANIME or MediaType.MANGA.
+ * @param mediaType - The media type, either MediaType. ANIME or MediaType.MANGA.
  * @returns A GraphQL query string.
  */
 function getMediaQuery(
@@ -66,11 +56,29 @@ function getMediaQuery(
     }`;
 }
 
+// Can't use a return of MediaPrisma. It would need the id and all the attributes.
+function mediaAnilistToPrisma(media: MediaAPI): Prisma.MediaCreateInput | null {
+
+    if (!media) return null;
+
+    return {
+        malId: media.id,
+        title: media.title,
+        format: media.format,
+        description: media.description,
+        bannerImgURL: media.coverImage,
+        // If is an array, assign the genre from API, else empty array
+        genre: Array.isArray(media.genres) ? media.genres : [],
+        malAvgScore: media.averageScore,
+        releaseYear: media.releaseYear
+    }
+}
+
 /**
- * Retreives a Anime or Manga from AniList API by ID or search term.
+ * Retreives an Anime or Manga from AniList API by ID or search term.
  * @param value - The ID (number) or search (string) to query.
  * @param searchField - Whether to search by 'id' or 'search' (default: 'id').
- * @param type - The media type, either MediaType.ANIME or MediaType.MANGA.
+ * @param type - The media type, either MediaType. ANIME or MediaType.MANGA.
  * @returns A Promise resolving to the Media object.
  */
 // GraphQL requests use POST with { query, variables }.
@@ -79,7 +87,7 @@ export async function getDataAnilist(
     value: number | string,
     searchField: 'id' | 'search' = 'id',
     type: MediaType,
-) : Promise<Media | null> {
+) : Promise<Prisma.MediaCreateInput | null> {
     try {
         const {data} = await anilist.post('', {
             query: getMediaQuery(
@@ -91,16 +99,7 @@ export async function getDataAnilist(
         });
 
         const media = data.data.Media;
-        return {
-            id: media.id,
-            title: {english: media.title.english},
-            format: media.format ?? null,
-            description: media.description ?? "",
-            coverImage: media.coverImage?.large ?? "",
-            // If is an array, assign the genre from API, else empty array
-            genres: Array.isArray(media.genres) ? media.genres : [],
-            averageScore: media.averageScore,
-        }
+        return mediaAnilistToPrisma(media);
 
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
