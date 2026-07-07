@@ -10,4 +10,26 @@ export function authentify (req: Request, res: Response, next: NextFunction) {
     if (!headers?.startsWith("Bearer ")) {
         return res.status(HTTP_STATUS_CODES.UNAUTHORIZED).send({})
     }
+
+    const token = process.env.JWT_SECRET;
+    if (!token) {
+        return res.status(HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "JWT_SECRET is not configured" })
+    }
+
+    try {
+        const payload = jwt.verify(token, process.env.JWT_SECRET!);
+        (req as any).user = payload;
+        next()
+    } catch (e) {
+        return res.status(HTTP_STATUS_CODES.UNAUTHORIZED).send({})
+    }
+}
+
+export function requestRole (role: String) {
+    return async (req: Request, res: Response, next: NextFunction) => {
+        if ((req as any).user.role !== role) {
+    res.status(HTTP_STATUS_CODES.FORBIDDEN).json({message: "Access denied"})
+        }
+        next();
+    }
 }
