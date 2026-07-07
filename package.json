@@ -8,12 +8,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Jaska28/TP1-Service-Web.git"
+    "url": "git+https://github.com/Jaska28/TP1-Service-Web.git",
+    "dev": "tsx watch src/server.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/Jaska28/TP1-Service-Web/issues"
   },

@@ -21,7 +21,67 @@ Vous créez une communauté de passionnés de culture : chacun note et critique 
 
 ## Diagramme de classes
 
-![class diagram](class-diagram.drawio.png)
+```mermaid
+---
+config:
+  layout: elk
+  theme: default
+  look: classic
+---
+erDiagram
+	direction LR
+	User {
+		uuid usrId  ""
+		string username  ""
+		string email  ""
+		string psswd  ""
+		timestamp createdAt  ""
+	}
+
+	MediaList {
+		uuid mediaListId  ""
+		uuid userId  ""
+		string name  ""
+		string desc  ""
+		boolean isPublic  ""
+		timestamp createdAt  ""
+	}
+
+	MediaListItem {
+		uuid mediaListId  ""
+		uuid mediaId  ""
+		timestamp added_at  ""
+	}
+
+	Media {
+		uuid mediaId  ""
+		int malId  ""
+		string title  ""
+		string desc  ""
+		MediaType type  ""
+		MediaFormat format  ""
+		MediaStatus status  ""
+		string bannerImgURL  ""
+		int avgScore  ""
+		int malAvgScore  ""
+		int publishingYear  ""
+		Genre genre  ""
+		timestamp createdAt  ""
+	}
+
+	Review {
+		uuid reviewId  ""
+		uuid userId  ""
+		int rating  ""
+		string comments  ""
+		timestamp createdAt  ""
+	}
+
+	User||--|{MediaList:"owns"
+	MediaList||--|{MediaListItem:"contains"
+	MediaListItem||--|{Media:"references"
+	User||--|{Review:"writes"
+  ```
 
 ## Backend
 
