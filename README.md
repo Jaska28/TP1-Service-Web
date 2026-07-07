@@ -1,48 +1,111 @@
 # TP1-Service-Web
 
-## UML Diagrams
+Sujet: Evaluation d'oeuvre d'art
 
-### Class Diagram
 
+Enonce: https://laboratoire-1-service-web-25604.vercel.app/index.html
+
+## Separation du travail
+
+- Axios (JS)
+- Express (JS)
+- Prisma + Neon (EV)
+- Test .res (EV)
+- JWT + bcrypt (JS & EV)
+- CRUD complet (GET/ POST/ PUT-PATCH/ DELETE)
+
+**Contexte:**
+Vous créez une communauté de passionnés de culture : chacun note et critique des œuvres (jeux vidéo, films, séries, livres), les classe dans des listes (« à voir », « terminé »), et découvre les avis des autres. Les fiches d'œuvres sont enrichies automatiquement depuis des bases publiques.
+
+- Nous avons choisi de creer une communaute permettent d'evaluer les animes et les mangas
+
+## Diagramme de classes
+
+```mermaid
 ---
-
-### Entity Relationship Diagram
-
+config:
+  layout: elk
+  theme: default
+  look: classic
 ---
+erDiagram
+	direction LR
+	User {
+		uuid usrId  ""
+		string username  ""
+		string email  ""
+		string psswd  ""
+		timestamp createdAt  ""
+	}
 
-## AniList API Documentation
-https://docs.anilist.co/guide/graphql/
+	MediaList {
+		uuid mediaListId  ""
+		uuid userId  ""
+		string name  ""
+		string desc  ""
+		boolean isPublic  ""
+		timestamp createdAt  ""
+	}
 
-There is a playground and visualization section. We can see all the queries and mutations available in the API. The documentation also provides examples of how to use the API with different programming languages.
+	MediaListItem {
+		uuid mediaListId  ""
+		uuid mediaId  ""
+		timestamp added_at  ""
+	}
 
----
+	Media {
+		uuid mediaId  ""
+		int malId  ""
+		string title  ""
+		string desc  ""
+		MediaType type  ""
+		MediaFormat format  ""
+		MediaStatus status  ""
+		string bannerImgURL  ""
+		int avgScore  ""
+		int malAvgScore  ""
+		int publishingYear  ""
+		Genre genre  ""
+		timestamp createdAt  ""
+	}
 
-## Difficulties Encountered
-### Jean-Simon
-- Understanding the GraphQL versus REST API concepts.
-> The query is the list of fields that we want to extract from the API.
+	Review {
+		uuid reviewId  ""
+		uuid userId  ""
+		int rating  ""
+		string comments  ""
+		timestamp createdAt  ""
+	}
 
-Exemple of a query to get an anime by its ID:
-````TypeScript
-const getAnimeByIdQuery = `
-  query ($id: Int) {
-    Media(id: $id, type: ANIME) {
-      id
-      title {
-        romaji
-        english
-        native
-      }
-      format
-    }
-  }
-`;
-````
-We just have hade to add the query to the body of the request and send it to the API.
+	User||--|{MediaList:"owns"
+	MediaList||--|{MediaListItem:"contains"
+	MediaListItem||--|{Media:"references"
+	User||--|{Review:"writes"
+  ```
 
-The search parameters inside the query are called variables. We can use them to filter the results of the query.
+## Backend
 
-Took me some time to be able to refine the API fil. I had to understand how to use the query variables and how to structure the query to get the desired results.
+- Prisma + Neon pour stocker
+- Express pour servir
+- Axios pour enrichir (API externe)
+- JWT + bcrypt pour proteger
 
-## Link for the query list
-https://docs.anilist.co/reference/query
+### Donnees et routes (Express + Prisma)
+
+- CRUD des oeuvres et des critiques
+- Calculer la note moyenne d'une oeuvre
+- Filter les oeuvres par type ou trier par note (query string)
+- Gerer la liste personnelle de l'utilisateur connecte
+
+### Securite (JWT + propriete)
+
+- Inscription / connexion (mdp hache, token signe)
+- Lire les oeuvres et critiques: public
+- Ecrire un crtitique: connecte; on ne modifie/supprime que la sienne
+- Moderer (supprimer une critique d'autrui): ADMIN (401 vs 403)
+
+### Intergration Axios (fiches d'oeuvres)
+
+- Quand on ajoute une oeuvre, recuper ses infos depuis une base publique selon le type:
+    - Notre API: https://graphql.anilist.co
+    - Docu: https://anilist.co/
