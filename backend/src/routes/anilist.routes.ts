@@ -2,14 +2,7 @@ import {Router, type Response, type Request} from "express";
 import {Prisma} from "../../generated/prisma/client.js";
 import {getDataAnilist} from '../api/mediaAPI.js';
 import prisma from '../../utils/prisma.js'
-
-export const HTTP_STATUS_CODES = {
-    CREATED: 201,
-    BAD_REQUEST: 400,
-    UNAUTHORIZED: 401,
-    NOT_FOUND: 404,
-    INTERNAL_SERVER_ERROR: 500,
-} as const;
+import {HTTP_STATUS_CODES} from "../../utils/httpStatusCodes.js";
 
 const routerMedia = Router();
 

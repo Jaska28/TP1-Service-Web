@@ -1,6 +1,6 @@
 import {type Request, type Response, type NextFunction} from "express"
 import dotenv from "dotenv"
-import HTTP_STATUS_CODES from "../routes/anilist.routes.js"
+import {HTTP_STATUS_CODES} from "../../utils/httpStatusCodes.js";
 
 dotenv.config()
 import jwt from "jsonwebtoken"

@@ -2,7 +2,6 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -10,4 +9,119 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// --- ENUMS ---
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum MediaType {
+  ANIME
+  MANGA
+}
+
+enum MediaFormat {
+  TV
+  TV_SHORT
+  MOVIE
+  SPECIAL
+  OVA
+  ONA
+  MUSIC
+  MANGA
+  NOVEL
+  ONE_SHOT
+}
+
+enum MediaStatus {
+  FINISHED
+  RELEASING
+  NOT_YET_RELEASED
+  CANCELLED
+  HIATUS
+}
+
+enum Genre {
+  ACTION
+  ADVENTURE
+  COMEDY
+  DRAMA
+  FANTASY
+  HORROR
+  MAGICAL_GIRL
+  MECHA
+  MUSIC
+  MYSTERY
+  PSYCHOLOGICAL
+  ROMANCE
+  SCI_FI
+  SLICE_OF_LIFE
+  SPORTS
+  SUPERNATURAL
+  THRILLER
+}
+
+// --- MODELES ---
+model User {
+  id         String      @id @default(uuid()) @db.Uuid
+  username   String      @unique
+  password   String // HASH w/ bcrypt
+  role       Role        @default(USER)
+  createdAt  DateTime    @default(now())
+  mediaLists MediaList[]
+  reviews    Review[]
+}
+
+model MediaList {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  name        String
+  description String?
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  user           User            @relation(fields: [userId], references: [id])
+  mediaListItems MediaListItem[]
+}
+
+model MediaListItem {
+  id          String   @id @default(uuid()) @db.Uuid
+  mediaListId String   @db.Uuid
+  mediaId     String   @db.Uuid
+  addedAt     DateTime @default(now())
+
+  mediaList MediaList @relation(fields: [mediaListId], references: [id])
+  media     Media     @relation(fields: [mediaId], references: [id])
+
+  @@unique([mediaListId, mediaId]) // prevents duplicates
+}
+
+model Media {
+  id             String          @id @default(uuid()) @db.Uuid
+  malId          Int // Id from MyAnimeList
+  title          String
+  description    String?
+  type           MediaType       @default(ANIME)
+  format         MediaFormat     @default(TV)
+  status         MediaStatus     @default(RELEASING)
+  bannerImgURL   String?
+  avgScore       Float?
+  malAvgScore    Float?
+  releaseYear    Int
+  genre          Genre
+  createAt       DateTime        @default(now())
+  mediaListItems MediaListItem[]
+}
+
+model Review {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  rating    Float // in between 0 and 10
+  comments  String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
 }
