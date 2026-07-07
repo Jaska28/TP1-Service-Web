@@ -1,5 +1,4 @@
 import {Router, type Response, type Request} from "express";
-import {AxiosError} from 'axios';
 import {Prisma} from "../../generated/prisma/client.js";
 import {getDataAnilist} from '../api/mediaAPI.js';
 import prisma from '../../utils/prisma.js'
@@ -18,14 +17,15 @@ const routerMedia = Router();
 /// TODO - Add user authentication and authorization to restrict access.
 routerMedia.post("", async (req: Request, res: Response) => {
     try {
-        const data = await getDataAnilist(req.body.value, req.body.searchField, req.body.type);
+        const mediaCreateData = await getDataAnilist(req.body.value, req.body.searchField, req.body.type);
 
-        if (!data) {
+        if (!mediaCreateData) {
             return res.status(HTTP_STATUS_CODES.NOT_FOUND).json("No data found!");
         }
 
-        const media = await prisma.media.create({data: data});
-        res.status(HTTP_STATUS_CODES.CREATED).json(`Your media ${media.name} has been added successfully!`);
+        const media = await prisma.media.create({data: mediaCreateData});
+        res.status(HTTP_STATUS_CODES.CREATED).json(`Your media ${media.title} has been added successfully!`);
+
     } catch (e: unknown) {
         if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
             return res.status(HTTP_STATUS_CODES.BAD_REQUEST).json({error: "Media already exists!"});
@@ -38,17 +38,17 @@ routerMedia.post("", async (req: Request, res: Response) => {
 
 
 routerMedia.patch("/:id", async (req: Request, res: Response) => {
-  const id = Number(req.params.id);
+    const id = String(req.params.id);
 
-  try {
-    const media = await prisma.media.update({
-      where: {id},
-      data: req.body,
-    });
-    res.json(media);
-  } catch (e) {
-    return res.status(HTTP_STATUS_CODES.NOT_FOUND).json("No data found!")
-  }
+    try {
+        const media = await prisma.media.update({
+            where: {id},
+            data: req.body,
+        });
+        res.json(media);
+    } catch (e) {
+        return res.status(HTTP_STATUS_CODES.NOT_FOUND).json("No data found!")
+    }
 })
 
 routerMedia.get("", async (req: Request, res: Response) => {
@@ -58,6 +58,15 @@ routerMedia.get("", async (req: Request, res: Response) => {
     res.json(data);
 })
 
-/// TODO - Complete the delete request
+routerMedia.delete("/:id", async (req: Request, res: Response) => {
+    const id = String(req.params.id);
+
+    try {
+        const media = await prisma.media.delete({where: {id}})
+        res.json({message: `media ${media.title} has been deleted!`});
+    } catch (e) {
+        res.status(HTTP_STATUS_CODES.NOT_FOUND).json({error: `Media ${id} not found!`});
+    }
+})
 
 export default routerMedia;
