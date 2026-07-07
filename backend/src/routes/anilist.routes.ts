@@ -1,7 +1,7 @@
 import {Router, type Response, type Request} from "express";
 import {AxiosError} from 'axios';
 import {Prisma} from "../../generated/prisma/client.js";
-import {getDataAnilist, MediaType} from '../api/mediaAPI.js';
+import {getDataAnilist} from '../api/mediaAPI.js';
 import prisma from '../../utils/prisma.js'
 
 export const HTTP_STATUS_CODES = {
@@ -17,13 +17,13 @@ const routerMedia = Router();
 // Register a media to the database.
 /// TODO - Add user authentication and authorization to restrict access.
 routerMedia.post("", async (req: Request, res: Response) => {
-    const data = await getDataAnilist(req.body.value, req.body.searchField, req.body.type);
-
-    if (!data) {
-        return res.status(HTTP_STATUS_CODES.NOT_FOUND).json("No data found!");
-    }
-
     try {
+        const data = await getDataAnilist(req.body.value, req.body.searchField, req.body.type);
+
+        if (!data) {
+            return res.status(HTTP_STATUS_CODES.NOT_FOUND).json("No data found!");
+        }
+
         const media = await prisma.media.create({data: data});
         res.status(HTTP_STATUS_CODES.CREATED).json(`Your media ${media.name} has been added successfully!`);
     } catch (e: unknown) {
@@ -37,7 +37,7 @@ routerMedia.post("", async (req: Request, res: Response) => {
 });
 
 
-routerMedia.patch("", async (req: Request, res: Response) => {
+routerMedia.patch("/:id", async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
   try {
@@ -45,6 +45,7 @@ routerMedia.patch("", async (req: Request, res: Response) => {
       where: {id},
       data: req.body,
     });
+    res.json(media);
   } catch (e) {
     return res.status(HTTP_STATUS_CODES.NOT_FOUND).json("No data found!")
   }
@@ -52,10 +53,9 @@ routerMedia.patch("", async (req: Request, res: Response) => {
 
 routerMedia.get("", async (req: Request, res: Response) => {
     const data = await prisma.media.findMany({
-        orderBy: "id",
+        orderBy: {id: "asc"},
     });
     res.json(data);
 })
-
 
 export default routerMedia;
