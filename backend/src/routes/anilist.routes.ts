@@ -1,13 +1,13 @@
 import {Router, type Response, type Request} from "express";
-import {Prisma} from "../../generated/prisma/client.js";
+import {Prisma, Role} from "../../generated/prisma/client.js";
 import {getDataAnilist} from '../api/mediaAPI.js';
 import prisma from '../../utils/prisma.js'
 import {HTTP_STATUS_CODES} from "../../utils/httpStatusCodes.js";
+import {authentify, requestRole} from "../middlewares/auth.js";
 
 const routerMedia = Router();
 
 // Register a media to the database.
-/// TODO - Add user authentication and authorization to restrict access.
 routerMedia.post("", async (req: Request, res: Response) => {
     try {
         const mediaCreateData = await getDataAnilist(req.body.value, req.body.searchField, req.body.type);
@@ -30,7 +30,7 @@ routerMedia.post("", async (req: Request, res: Response) => {
 });
 
 
-routerMedia.patch("/:id", async (req: Request, res: Response) => {
+routerMedia.patch("/:id", authentify, requestRole(Role.ADMIN), async (req: Request, res: Response) => {
     const id = String(req.params.id);
 
     try {
