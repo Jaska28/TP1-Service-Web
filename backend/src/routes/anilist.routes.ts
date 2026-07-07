@@ -58,4 +58,6 @@ routerMedia.get("", async (req: Request, res: Response) => {
     res.json(data);
 })
 
+/// TODO - Complete the delete request
+
 export default routerMedia;
