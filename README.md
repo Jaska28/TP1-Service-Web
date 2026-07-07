@@ -3,7 +3,6 @@
 ## UML Diagrams
 
 ### Class Diagram
-
 ---
 
 ### Entity Relationship Diagram
