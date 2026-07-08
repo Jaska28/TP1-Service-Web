@@ -20,7 +20,7 @@ export function authentify (req: Request, res: Response, next: NextFunction) {
         return res.status(HTTP_STATUS_CODES.UNAUTHORIZED).send({})
     }
 
-    const token = process.env.JWT_SECRET;
+    const token = headers.split(" ")[1];
     if (!token) {
         return res.status(HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "JWT_SECRET is not configured" })
     }
