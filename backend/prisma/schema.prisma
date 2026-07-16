@@ -111,17 +111,20 @@ model Media {
   avgScore       Float?
   malAvgScore    Float?
   releaseYear    Int
-  genre          Genre
+  genre          String[]
   createAt       DateTime        @default(now())
   mediaListItems MediaListItem[]
+  reviews        Review[]
 }
 
 model Review {
   id        String   @id @default(uuid()) @db.Uuid
   userId    String   @db.Uuid
+  mediaId   String   @db.Uuid
   rating    Float // in between 0 and 10
   comments  String?
   createdAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+  media Media @relation(fields: [mediaId], references: [id])
 }
