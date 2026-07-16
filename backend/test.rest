@@ -1,0 +1,48 @@
+@base = http://localhost:3000
+
+### 1. Inscription
+POST {{base}}/auth/register
+Content-Type: application/json
+
+{ "email": "test@email.com", "pseudo": "pseudoTest", "password": "passwordTest" }
+
+### 2. Connexion -> copier le token renvoyer
+# @name login
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{ "email": "test@email.com", "password": "passwordTest" }
+
+### 3. Qui suis-je? (route protege)
+GET {{base}}/auth/me
+Authorization: Bearer {{login.response.body.token}}
+
+### 4. Importer des medias test
+# To be filled
+
+### 5. Lister les media ajouter
+# To be filled
+
+### 6. Creer une liste et ajouter un media a celle-ci
+# To be filled
+
+### 7. Voir une liste de media
+# To be filled
+
+### 8. Laisser un commentaire sur un media
+# To be filled
+
+### 9. Voir les commentaires pour un media
+# To be filled
+
+### 10. Importer SANS token -> doit echouer (401)
+# to be replaced
+POST {{base}}/lancements/importer
+Content-Type: application/json
+
+{ "limite": 3 }
+
+### 11. Supprimer un media en tant que USER -> doit echouer (403)
+# to be replaced
+DELETE {{base}}/lancements/1
+Authorization: Bearer {{login.response.body.token}}
