@@ -34,18 +34,7 @@ routerMedia.post("", async (req: Request, res: Response) => {
         .json({ error: "Media already exists!" });
     }
 
-    console.error(e);
-    res
-      .status(HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR)
-      .json({ error: "Error creating media" });
-  }
-});
-
-routerMedia.patch(
-  "/:id",
-  authentifier,
-  requestRole(Role.ADMIN),
-  async (req: Request, res: Response) => {
+routerMedia.patch("/:id", authentify, requestRole(Role.ADMIN), async (req: Request, res: Response) => {
     const id = String(req.params.id);
 
     try {
@@ -65,6 +54,22 @@ routerMedia.get("", async (req: Request, res: Response) => {
     orderBy: { id: "asc" },
   });
   res.json(data);
+});
+
+routerMedia.get("/:id/avg-score", async (req: Request, res: Response) => {
+    const mediaId = String(req.params.id);
+
+    const result = await prisma.review.aggregate({
+        where: { mediaId },
+        _avg: { rating: true },
+        _count: { rating: true },
+    });
+
+    res.json({
+        mediaId,
+        avgScore: result._avg.rating,
+        reviewCount: result._count.rating,
+    });
 });
 
 routerMedia.delete("/:id", async (req: Request, res: Response) => {
