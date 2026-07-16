@@ -29,7 +29,6 @@ routerMedia.post("", async (req: Request, res: Response) => {
     }
 });
 
-
 routerMedia.patch("/:id", authentify, requestRole(Role.ADMIN), async (req: Request, res: Response) => {
     const id = String(req.params.id);
 
@@ -50,6 +49,22 @@ routerMedia.get("", async (req: Request, res: Response) => {
     });
     res.json(data);
 })
+
+routerMedia.get("/:id/avg-score", async (req: Request, res: Response) => {
+    const mediaId = String(req.params.id);
+
+    const result = await prisma.review.aggregate({
+        where: { mediaId },
+        _avg: { rating: true },
+        _count: { rating: true },
+    });
+
+    res.json({
+        mediaId,
+        avgScore: result._avg.rating,
+        reviewCount: result._count.rating,
+    });
+});
 
 routerMedia.delete("/:id", async (req: Request, res: Response) => {
     const id = String(req.params.id);
