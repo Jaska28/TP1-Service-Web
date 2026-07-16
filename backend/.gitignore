@@ -7,3 +7,5 @@ backend/.env
 .idea/
 
 dist/
+
+.env
