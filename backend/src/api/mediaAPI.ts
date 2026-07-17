@@ -21,13 +21,21 @@ export enum MediaType {
 
 export type MediaAPI = {
     id: number;
-    title: string;
+    title: {
+        english?: string | null;
+        romaji?: string | null;
+        native?: string | null;
+    };
     format: MediaFormat;
     description: string;
-    coverImage: string;
+    coverImage: {
+        large?: string | null;
+    };
     genres: string[];
     averageScore: number;
-    releaseYear: number;
+    startDate: {
+        year?: number | null;
+    };
 };
 
 /**
@@ -43,35 +51,44 @@ function getMediaQuery(
     mediaType: MediaType): string {
 
     return `query ($${searchField}: ${searchFieldType}) {
-        Media(${searchField}: $${searchField}, type: ${mediaType}) {
+    Media(${searchField}: $${searchField}, type: ${mediaType}) {
         id
-        title {english}
+        title {
+            english
+            romaji
+            native
+        }
         format
         description
-        coverImage{large}
+        coverImage {
+            large
+        }
         status
         genres
         averageScore
-       }
-    }`;
+        startDate {
+            year
+        }
+    }
+}`;
 }
 
 // Can't use a return of MediaPrisma. It would need the id and all the attributes.
-function mediaAnilistToPrisma(media: MediaAPI): Prisma.MediaCreateInput | null {
+function mediaAnilistToPrisma(media: MediaAPI, type: MediaType): Prisma.MediaCreateInput | null {
 
     if (!media) return null;
 
     return {
         malId: media.id,
-        title: media.title,
+        title: media.title.english || media.title.romaji || media.title.native || `AniList #${media.id}`,
+        type,
         format: media.format,
         description: media.description,
-        bannerImgURL: media.coverImage,
-        // If is an array, assign the genre from API, else empty array
+        bannerImgURL: media.coverImage.large ?? null,
         genre: Array.isArray(media.genres) ? media.genres : [],
         malAvgScore: media.averageScore,
-        releaseYear: media.releaseYear
-    }
+        releaseYear: media.startDate.year || new Date().getFullYear(),
+    };
 }
 
 /**
@@ -87,7 +104,7 @@ export async function getDataAnilist(
     value: number | string,
     searchField: 'id' | 'search' = 'id',
     type: MediaType,
-) : Promise<Prisma.MediaCreateInput | null> {
+): Promise<Prisma.MediaCreateInput | null> {
     try {
         const {data} = await anilist.post('', {
             query: getMediaQuery(
@@ -99,7 +116,7 @@ export async function getDataAnilist(
         });
 
         const media = data.data.Media;
-        return mediaAnilistToPrisma(media);
+        return mediaAnilistToPrisma(media, type);
 
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {

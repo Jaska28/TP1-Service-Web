@@ -1,48 +1,156 @@
 @base = http://localhost:3000
 
-### 1. Inscription
+### 1. Inscription ADMIN
 POST {{base}}/auth/register
 Content-Type: application/json
 
-{ "email": "test@email.com", "pseudo": "pseudoTest", "password": "passwordTest" }
+{ "username": "pseudoAdmin", "password": "passwordTest", "role": "ADMIN" }
+
+### 1. Inscription USER
+POST {{base}}/auth/register
+Content-Type: application/json
+
+{ "username": "pseudoUser", "password": "passwordTest", "role": "USER" }
 
 ### 2. Connexion -> copier le token renvoyer
 # @name login
 POST {{base}}/auth/login
 Content-Type: application/json
 
-{ "email": "test@email.com", "password": "passwordTest" }
+{ "username": "pseudoAdmin", "password": "passwordTest" }
+
+> {% client.global.set("token", response.body.token); %}
+
+### 2. Connexion USER -> copier le token renvoyer
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{ "username": "pseudoUser", "password": "passwordTest" }
+
+> {% client.global.set("userToken", response.body.token); %}
 
 ### 3. Qui suis-je? (route protege)
 GET {{base}}/auth/me
-Authorization: Bearer {{login.response.body.token}}
+Authorization: Bearer {{token}}
 
 ### 4. Importer des medias test
-# To be filled
-
-### 5. Lister les media ajouter
-# To be filled
-
-### 6. Creer une liste et ajouter un media a celle-ci
-# To be filled
-
-### 7. Voir une liste de media
-# To be filled
-
-### 8. Laisser un commentaire sur un media
-# To be filled
-
-### 9. Voir les commentaires pour un media
-# To be filled
-
-### 10. Importer SANS token -> doit echouer (401)
-# to be replaced
-POST {{base}}/lancements/importer
+### Cowboy bebop (anime) : 1
+POST {{base}}/register
 Content-Type: application/json
 
-{ "limite": 3 }
+{
+  "value": 1,
+  "searchField": "id",
+  "type": "ANIME"
+}
 
-### 11. Supprimer un media en tant que USER -> doit echouer (403)
-# to be replaced
-DELETE {{base}}/lancements/1
-Authorization: Bearer {{login.response.body.token}}
+> {% client.global.set("cowboyId", response.body.id); %}
+
+#### One Piece (anime) : 21 par nom (search)
+POST {{base}}/register
+Content-Type: application/json
+
+{
+  "value": "one piece",
+  "searchField": "search",
+  "type": "ANIME"
+}
+
+> {% client.global.set("onePieceId", response.body.id); %}
+
+### Dragon Ball (manga) :
+POST {{base}}/register
+Content-Type: application/json
+
+{
+  "value": "dragon ball",
+  "searchField": "search",
+  "type": "MANGA"
+}
+
+> {% client.global.set("dragonBallId", response.body.id); %}
+
+### 5. Lister les media ajouter
+GET {{base}}
+
+### 6. Creer une liste et ajouter un media a celle-ci
+### Creer une liste
+POST {{base}}/media-lists
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "name": "Ma liste",
+  "description": "testing",
+  "isPublic": true
+}
+
+> {% client.global.set("mediaListId", response.body.id); %}
+
+### Ajouter un media a la liste
+POST {{base}}/media-lists/{{mediaListId}}/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "mediaId": "{{dragonBallId}}"
+}
+
+### Ajouter un autre media a la liste
+POST {{base}}/media-lists/{{mediaListId}}/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "mediaId": "{{onePieceId}}"
+}
+
+### 7. Voir une liste de media
+GET {{base}}/media-lists/{{mediaListId}}
+
+### 8. Review  un media
+POST {{base}}/{{onePieceId}}/reviews
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "rating": 4, "comment": "Insane!" }
+
+> {% client.global.set("reviewId", response.body.id); %}
+
+### Modifier review
+PATCH {{base}}/reviews/{{reviewId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "rating": 8.5, "comments": "Updated review: still insane." }
+
+### 9. Voir review pour un media
+GET {{base}}/{{onePieceId}}/check-review
+
+### 10. Supprimer un media en tant que USER -> doit echouer (403)
+DELETE {{base}}/{{onePieceId}}/delete
+Authorization: Bearer {{userToken}}
+
+### 11. Moyenne des scores pour un media
+GET {{base}}/{{onePieceId}}/avg-score
+
+### 12. Supprimer un media en tant qu'admin
+DELETE {{base}}/{{dragonBallId}}/delete
+Authorization: Bearer {{token}}
+
+### 13. Supprimer review
+DELETE {{base}}/reviews/{{reviewId}}
+Authorization: Bearer {{token}}
+
+### 14. filtres
+### Seulement les anime
+GET {{base}}?type=ANIME
+
+### Seulement les manga
+GET {{base}}?type=MANGA
+
+### Trier par avgScore descendant
+GET {{base}}?sort=avgScore
+
+### Filtrer manga + trier par avgScore
+GET {{base}}?type=MANGA&sort=avgScore
