@@ -45,7 +45,7 @@ export function authentifier(req: Request, res: Response, next: NextFunction) {
 export function requestRole(role: String) {
   return async (req: Request, res: Response, next: NextFunction) => {
     if ((req as any).user.role !== role) {
-      res
+      return res
         .status(HTTP_STATUS_CODES.FORBIDDEN)
         .json({ message: "Access denied" });
     }
